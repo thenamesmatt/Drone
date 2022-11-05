@@ -1,5 +1,7 @@
 #include <IBusBM.h>
 #include "SoftPWM.h"
+#include <Wire.h>
+
 
 // GLOBAL VARIABLES FOR READING IBUSX ---------------------------------
 IBusBM ibusRc;
@@ -12,7 +14,6 @@ int frontRight = 13;
 int rearLeft   =  5;
 int rearRight  = 12; 
 // --------------------------------------------------------------------
-
 
 // pulseWidth takes motor, throttle, roll, pitch, yaw
 // We need to stop the pulsewidth from passing a certain value if the angle from the mpu is a certain angle
@@ -60,6 +61,10 @@ int pulseWidth(int motor, int throttle, int roll, int pitch, int yaw){
   return (int)(multiplier * throttle);
 }
 
+// GLOBAL VARIABLES FOR MPU ----------------------------------------
+
+// --------------------------------------------------------------------
+
 void setup() {
   // IBUS SETUP ------------------------------------------------------
   ibusRc.begin(ibusRcSerial);
@@ -75,7 +80,7 @@ void setup() {
   // ------------------------------------------------------------------
 
 
-  // MPU SETUP
+  // MPU SETUP --------------------------------------------------------
 
   // ------------------------------------------------------------------
 }
@@ -91,6 +96,7 @@ int readChannel(byte channelInput, int minLimit, int  maxLimit, int defaultValue
 
 void loop() {
   //READ DATA FROM IBUS AND SET PWM ----------------------------------
+  
   //CHANNEL 2 THROTTLE, CHANNEL 3 YAW, CHANNEL 0 ROLL, CHANNEL 1 PITCH 
   int throttle = readChannel(2, 0, 80, 0);
   int yaw = readChannel(3, -100, 100, 0);
@@ -111,5 +117,10 @@ void loop() {
   SoftPWMSetPercent(frontRight, frontRightPW);
   SoftPWMSetPercent(rearRight, rearRightPW);
   // ------------------------------------------------------------------
+
+// READ DATA FROM MPU -----------------------------------------------
+
+
+// ------------------------------------------------------------------
 
 }

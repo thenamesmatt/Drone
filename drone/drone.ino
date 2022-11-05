@@ -18,6 +18,7 @@ int rearRight  = 12;
 // We need to stop the pulsewidth from passing a certain value if the angle from the mpu is a certain angle
 int pulseWidth(int motor, int throttle, int roll, int pitch, int yaw){
   // Throttle is 0-80
+
   // Roll, pitch, yaw are -100 to 100
 
   float response = 0.005;
@@ -45,6 +46,14 @@ int pulseWidth(int motor, int throttle, int roll, int pitch, int yaw){
   }
 
   // Calculate yaw
+  // Yaw Counterclockwise
+  if(yaw > 0 && (motor == frontLeft || motor == rearRight)){
+    multiplier += (response * yaw);
+  }
+  // Yaw Clockwise
+  if(yaw < 0 && (motor == frontRight || motor == rearLeft)){
+    multiplier += (response * (-yaw));
+  }
 
   // Combine calculations to create multiplier
 

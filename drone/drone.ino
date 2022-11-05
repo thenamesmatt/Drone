@@ -47,7 +47,11 @@ int readChannel(byte channelInput, int minLimit, int  maxLimit, int defaultValue
 void loop() {
   //READ DATA FROM IBUS AND SET PWM ----------------------------------
   //CHANNLE 2 THROTTLE, CHANNEL 3 YAW, CHANNEL 0 ROLL, CHANNEL 1 PITCH 
-  int value = readChannel(2, 0, 100, 0);
+  int throttle = readChannel(2, 0, 100, 0);
+  int yaw = readChannel(3, 0, 100, 0);
+  int roll = readChannel(0, 0, 100, 0);
+  int pitch = readChannel(1, 0, 100, 0);
+  
   Serial.println(value);
   SoftPWMSetPercent(frontLeft,  value);
   SoftPWMSetPercent(rearLeft,   value);

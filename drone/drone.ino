@@ -14,23 +14,23 @@ int rearRight  = 12;
 //--------------------------------------------------------------------
 
 void setup() {
-  // IBUS SETUP --------------------------------------------------------
+  // IBUS SETUP ------------------------------------------------------
   ibusRc.begin(ibusRcSerial);
-  //--------------------------------------------------------------------
+  //------------------------------------------------------------------
 
 
-  // PWM SETUP ---------------------------------------------------------
+  // PWM SETUP -------------------------------------------------------
   SoftPWMBegin();
   SoftPWMSet(frontLeft,  0);
   SoftPWMSet(frontRight, 0);
   SoftPWMSet(rearLeft ,  0);
   SoftPWMSet(rearRight,  0);
-  //--------------------------------------------------------------------
+  //------------------------------------------------------------------
 
 
   //MPU SETUP
 
-  //--------------------------------------------------------------------
+  //------------------------------------------------------------------
 
 
 }
@@ -45,7 +45,7 @@ int readChannel(byte channelInput, int minLimit, int  maxLimit, int defaultValue
 
 
 void loop() {
-  //READ DATA FROM IBUS AND SET PWM --------------------------------------
+  //READ DATA FROM IBUS AND SET PWM ----------------------------------
   //CHANNLE 2 THROTTLE, CHANNEL 3 YAW, CHANNEL 0 ROLL, CHANNEL 1 PITCH 
   int value = readChannel(2, 0, 100, 0);
   Serial.println(value);
@@ -53,7 +53,6 @@ void loop() {
   SoftPWMSetPercent(rearLeft,   value);
   SoftPWMSetPercent(frontRight, value);
   SoftPWMSetPercent(rearRight , value);
-  //--------------------------------------------------------------------
-
+  //------------------------------------------------------------------
 
 }

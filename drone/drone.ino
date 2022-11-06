@@ -172,8 +172,8 @@ void loop() {
   
   //Gyro angle calculations
   //0.0000611 = 1 / (250Hz / 65.5)
-  angle_pitch += gyro_x * 0.0000611;                                   //Calculate the traveled pitch angle and add this to the angle_pitch variable
-  angle_roll += gyro_y * 0.0000611;                                    //Calculate the traveled roll angle and add this to the angle_roll variable
+  angle_pitch += gyro_y * 0.0000611;                                   //Calculate the traveled pitch angle and add this to the angle_pitch variable
+  angle_roll += gyro_x * 0.0000611;                                    //Calculate the traveled roll angle and add this to the angle_roll variable
   
   //0.000001066 = 0.0000611 * (3.142(PI) / 180degr) The Arduino sin function is in radians
   angle_pitch += angle_roll * sin(gyro_z * 0.000001066);               //If the IMU has yawed transfer the roll angle to the pitch angel
@@ -182,8 +182,8 @@ void loop() {
   //Accelerometer angle calculations
   acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));  //Calculate the total accelerometer vector
   //57.296 = 1 / (3.142 / 180) The Arduino asin function is in radians
-  angle_pitch_acc = asin((float)acc_y/acc_total_vector)* 57.296;       //Calculate the pitch angle
-  angle_roll_acc = asin((float)acc_x/acc_total_vector)* -57.296;       //Calculate the roll angle
+  angle_pitch_acc = asin((float)acc_x/acc_total_vector)* 57.296;       //Calculate the pitch angle
+  angle_roll_acc = asin((float)acc_y/acc_total_vector)* -57.296;       //Calculate the roll angle
   
   //Place the MPU-6050 spirit level and note the values in the following two lines for calibration
   angle_pitch_acc -= 0.0;                                              //Accelerometer calibration value for pitch
@@ -204,7 +204,6 @@ void loop() {
   angle_roll_output = angle_roll_output * 0.9 + angle_roll * 0.1;      //Take 90% of the output roll value and add 10% of the raw roll value
 
   // END CALCULATE ANGLES
-
 
   //READ DATA FROM IBUS AND SET PWM ----------------------------------
   

@@ -114,6 +114,9 @@ int pulseWidth(int motor, int throttle, int roll, int pitch, int yaw){
 
 // Setup MPU 6050 Registers - from http://www.brokking.net/imu.html
 void setup_mpu_6050_registers(){
+  // INTERRUPT!!!
+  attachInterrupt(digitalPinToInterrupt(9), read_mpu_6050_data, FALLING);
+
   //Activate the MPU-6050
   Wire.beginTransmission(0x68);                                        //Start communicating with the MPU-6050
   Wire.write(0x6B);                                                    //Send the requested starting register
@@ -145,7 +148,6 @@ void read_mpu_6050_data(){                                             //Subrout
   gyro_x = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_x variable
   gyro_y = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_y variable
   gyro_z = Wire.read()<<8|Wire.read();                                 //Add the low and high byte to the gyro_z variable
-
 }
 
 
@@ -165,9 +167,9 @@ void setup() {
 
 
   // MPU SETUP --------------------------------------------------------
-  Serial.begin(115200);
-
   setup_mpu_6050_registers();
+
+  Serial.begin(115200);
 
   // MPU Calibration from http://www.brokking.net/imu.html
   for (int cal_int = 0; cal_int < 2000 ; cal_int ++){                  //Run this code 2000 times
@@ -195,8 +197,11 @@ int readChannel(byte channelInput, int minLimit, int  maxLimit, int defaultValue
 
 
 void loop() {
-  // CALCULATE ANGLES - from http://www.brokking.net/imu.html
-  read_mpu_6050_data();                                                //Read the raw acc and gyro data from the MPU-6050
+  // // CALCULATE ANGLES - from http://www.brokking.net/imu.html
+  // read_mpu_6050_data();                                                //Read the raw acc and gyro data from the MPU-6050
+  // Interrupt to read mpu data
+  digitalWrite(digitalPinToInterrupt(9), LOW);
+  digitalWrite(digitalPinToInterrupt(9), HIGH);
 
   gyro_x -= gyro_x_cal;                                                //Subtract the offset calibration value from the raw gyro_x value
   gyro_y -= gyro_y_cal;                                                //Subtract the offset calibration value from the raw gyro_y value
@@ -251,7 +256,7 @@ void loop() {
   int frontRightPW = pulseWidth(frontRight, throttle, roll, pitch, yaw) * selfLevel(frontRight, angle_pitch_output, angle_roll_output, pitch, roll);
   int rearRightPW = pulseWidth(rearRight, throttle, roll, pitch, yaw) * selfLevel(rearRight, angle_pitch_output, angle_roll_output, pitch, roll);
 
-  Serial.print(frontLeftPW);
+  //Serial.print(frontLeftPW);
 
 
 
@@ -270,6 +275,8 @@ void loop() {
   Serial.print(angle_pitch_output);
   Serial.println("");
   Serial.println("");
+
+  
 
 // ------------------------------------------------------------------
 

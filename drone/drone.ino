@@ -3,6 +3,9 @@
 #include <Wire.h>
 
 
+// Citation: Reading data and interpreting it (calculating the angle of the roll and pitch) was done using the following source
+// https://howtomechatronics.com/tutorials/arduino/arduino-and-mpu6050-accelerometer-and-gyroscope-tutorial/
+
 // GLOBAL VARIABLES FOR READING IBUSX ---------------------------------
 IBusBM ibusRc;
 HardwareSerial& ibusRcSerial = Serial1;

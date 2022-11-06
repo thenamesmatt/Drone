@@ -86,18 +86,18 @@ float selfLevel(int motor, float pitch_angle, float roll_angle, int pitch, int r
 
     // Level the pitch
     // Front needs power
-    if(pitch_angle > 2.5 && (motor == rearLeft || motor == rearRight)){
+    if(pitch_angle > 2.5 && (motor == frontLeft || motor == frontRight)){
       multiplier += response;
     }
     // Rear needs power
-    else if(pitch_angle < -2.5 && (motor == frontLeft || motor == frontRight)){
+    else if(pitch_angle < -2.5 && (motor == rearLeft || motor == rearRight)){
       multiplier += response;
     }
 
-    if(pitch_angle < -2.5 && (motor == rearLeft || motor == rearRight)){
+    if(pitch_angle < -2.5 && (motor == frontLeft || motor == frontRight)){
       multiplier -= response;
     }
-    else if (pitch_angle > 2.5 && (motor == frontLeft || motor == frontRight)){
+    else if (pitch_angle > 2.5 && (motor == rearLeft || motor == rearRight)){
       multiplier -= response;
     }
 

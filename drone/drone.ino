@@ -34,6 +34,38 @@ float angle_pitch_output, angle_roll_output;
 
 // --------------------------------------------------------------------
 
+// selfLevel takes pitch and roll
+float selfLevel(int motor, float pitch_angle, float roll_angle, int pitch, int roll){
+  float multiplier = 1.0;
+  float response = 0.02;
+  
+  // For now, only do anything if pitch and roll are zero
+  if (pitch == roll == 0){
+
+    // Level the pitch
+    // Front needs power
+    if(pitch_angle > 1 && (motor == frontLeft || motor == frontRight)){
+      multiplier += response;
+    }
+    // Rear needs power
+    else if(pitch_angle < -1 && (motor == rearLeft || motor == rearRight)){
+      multiplier += response;
+    }
+
+    // Level the roll
+    // Left needs power
+    if (roll_angle < -1 && (motor == frontLeft || motor == rearLeft)){
+      multiplier += response;
+    }
+    // Right needs power 
+    else if (roll_angle > 1 && (motor == frontRight || motor == frontLeft)){
+      multiplier += response;
+    } 
+  }
+
+  return multiplier;
+}
+
 // pulseWidth takes motor, throttle, roll, pitch, yaw
 // We need to stop the pulsewidth from passing a certain value if the angle from the mpu is a certain angle
 int pulseWidth(int motor, int throttle, int roll, int pitch, int yaw){
@@ -214,10 +246,14 @@ void loop() {
   int pitch = readChannel(1, -100, 100, 0);
 
   // Calculate the pulse widths
-  int frontLeftPW = pulseWidth(frontLeft, throttle, roll, pitch, yaw);
-  int rearLeftPW = pulseWidth(rearLeft, throttle, roll, pitch, yaw);
-  int frontRightPW = pulseWidth(frontRight, throttle, roll, pitch, yaw);
-  int rearRightPW = pulseWidth(rearRight, throttle, roll, pitch, yaw);
+  int frontLeftPW = pulseWidth(frontLeft, throttle, roll, pitch, yaw) * selfLevel(frontLeft, angle_pitch_output, angle_roll_output, pitch, roll);
+  int rearLeftPW = pulseWidth(rearLeft, throttle, roll, pitch, yaw) * selfLevel(rearLeft, angle_pitch_output, angle_roll_output, pitch, roll);
+  int frontRightPW = pulseWidth(frontRight, throttle, roll, pitch, yaw) * selfLevel(frontRight, angle_pitch_output, angle_roll_output, pitch, roll);
+  int rearRightPW = pulseWidth(rearRight, throttle, roll, pitch, yaw) * selfLevel(rearRight, angle_pitch_output, angle_roll_output, pitch, roll);
+
+  Serial.print(frontLeftPW);
+
+
 
   // Update signals
   SoftPWMSetPercent(frontLeft, frontLeftPW);

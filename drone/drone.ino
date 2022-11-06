@@ -76,24 +76,119 @@ int readChannel(byte channelInput, int minLimit, int  maxLimit, int defaultValue
   return map(ch, 1000, 2000, minLimit, maxLimit);
 }
 // --------------------------------------------------------------------
+// selfLevel takes pitch and roll
+float selfLevel(int motor, float pitch_angle, float roll_angle, int pitch, int roll){
+  float multiplier = 1.0;
+  float response = 0.1;
+  
+  // For now, only do anything if pitch and roll are zero
+  if (pitch < 10 && pitch > -10 && roll < 10 && roll > -10){
 
+    // Level the pitch
+    // Front needs power
+    if(pitch_angle > 2.5 && (motor == rearLeft || motor == rearRight)){
+      multiplier += response;
+    }
+    // Rear needs power
+    else if(pitch_angle < -2.5 && (motor == frontLeft || motor == frontRight)){
+      multiplier += response;
+    }
+
+    if(pitch_angle < -2.5 && (motor == rearLeft || motor == rearRight)){
+      multiplier -= response;
+    }
+    else if (pitch_angle > 2.5 && (motor == frontLeft || motor == frontRight)){
+      multiplier -= response;
+    }
+
+    // Level the roll
+    // Left needs power
+    if (roll_angle < -2.5 && (motor == frontLeft || motor == rearLeft)){
+      multiplier += response;
+    }
+    // Right needs power 
+    else if (roll_angle > 2.5 && (motor == frontRight || motor == rearRight)){
+      multiplier += response;
+    } 
+
+    if(roll_angle < -2.5 && (motor == frontRight || motor == rearRight)){
+      multiplier -= response;
+    }
+    else if(roll_angle > 2.5 && (motor == frontRight || motor == rearRight)){
+      multiplier -= response;
+    }
+  }
+
+  return multiplier;
+}
+
+// pulseWidth takes motor, throttle, roll, pitch, yaw
+// We need to stop the pulsewidth from passing a certain value if the angle from the mpu is a certain angle
+int pulseWidth(int motor, int throttle, int roll, int pitch, int yaw){
+  // Throttle is 0-80
+
+  // Roll, pitch, yaw are -100 to 100
+
+  float response = 0.005;
+
+  float multiplier = 1.0;
+
+  // Calculate roll
+  // Roll right, power left
+  if (roll > 0 && (motor == rearLeft || motor == frontLeft)){
+    multiplier += (response * roll);
+  }
+  // Roll left, power right
+  else if (roll < 0 && (motor == rearRight || motor == frontRight)){
+    multiplier += (response * (-roll));
+  }
+
+  // Calculate pitch
+  // Pitch forward, power rear
+  if (pitch > 0 && (motor == rearRight || motor == rearLeft)){
+    multiplier += (response * pitch);
+  }
+  // Pitch back, power front
+  else if (pitch < 0 && (motor == frontLeft || motor == frontRight)){
+    multiplier += (response * (-pitch));
+  }
+
+  // Calculate yaw
+  // Yaw Counterclockwise
+  if(yaw > 0 && (motor == frontLeft || motor == rearRight)){
+    multiplier += (response * yaw);
+  }
+  // Yaw Clockwise
+  if(yaw < 0 && (motor == frontRight || motor == rearLeft)){
+    multiplier += (response * (-yaw));
+  }
+
+  // Combine calculations to create multiplier
+
+  return (int)(multiplier * throttle);
+}
 
 void loop() {
   //READ DATA FROM IBUS AND SET PWM ----------------------------------
   
   //CHANNEL 2 THROTTLE, CHANNEL 3 YAW, CHANNEL 0 ROLL, CHANNEL 1 PITCH 
   int throttle = readChannel(2, 0, 80, 0);
-  int yaw = readChannel(3, 0, 100, 0);
-  int roll = readChannel(0, 0, 100, 0);
-  int pitch = readChannel(1, 0, 100, 0);
+  int yawCtrl = readChannel(3, -100, 100, 0);
+  int rollCtrl = readChannel(0, -100, 100, 0);
+  int pitchCtrl = readChannel(1, -100, 100, 0);
   
   //Serial.println(value);
+  // Calculate the pulse widths
+  int frontLeftPW = pulseWidth(frontLeft, throttle, rollCtrl, pitchCtrl, yawCtrl) * selfLevel(frontLeft, pitch, roll, pitchCtrl, rollCtrl);
+  int rearLeftPW = pulseWidth(rearLeft, throttle, rollCtrl, pitchCtrl, yawCtrl) * selfLevel(rearLeft, pitch, roll, pitchCtrl, rollCtrl);
+  int frontRightPW = pulseWidth(frontRight, throttle, rollCtrl, pitchCtrl, yawCtrl) * selfLevel(frontRight, pitch, roll, pitchCtrl, rollCtrl);
+  int rearRightPW = pulseWidth(rearRight, throttle, rollCtrl, pitchCtrl, yawCtrl) * selfLevel(rearRight, pitch, roll, pitchCtrl, rollCtrl);
 
   // Update signals
-  SoftPWMSetPercent(frontLeft, throttle);
-  SoftPWMSetPercent(rearLeft, throttle);
-  SoftPWMSetPercent(frontRight, throttle);
-  SoftPWMSetPercent(rearRight, throttle);
+  SoftPWMSetPercent(frontLeft, frontLeftPW);
+  SoftPWMSetPercent(rearLeft, rearLeftPW);
+  SoftPWMSetPercent(frontRight, frontRightPW);
+  SoftPWMSetPercent(rearRight, rearRightPW);
   // ------------------------------------------------------------------
 
 // READ DATA FROM MPU -----------------------------------------------
@@ -149,7 +244,7 @@ void calculate_IMU_error() {
   // We can call this funtion in the setup section to calculate the accelerometer and gyro data error. From here we will get the error values used in the above equations printed on the Serial Monitor.
   // Note that we should place the IMU flat in order to get the proper values, so that we then can the correct values
   // Read accelerometer values 200 times
-  while (c < 200) {
+  while (c < 2000) {
     Wire.beginTransmission(MPU);
     Wire.write(0x3B);
     Wire.endTransmission(false);
@@ -163,11 +258,11 @@ void calculate_IMU_error() {
     c++;
   }
   //Divide the sum by 200 to get the error value
-  AccErrorX = AccErrorX / 200;
-  AccErrorY = AccErrorY / 200;
+  AccErrorX = AccErrorX / 2000;
+  AccErrorY = AccErrorY / 2000;
   c = 0;
   // Read gyro values 200 times
-  while (c < 200) {
+  while (c < 2000) {
     Wire.beginTransmission(MPU);
     Wire.write(0x43);
     Wire.endTransmission(false);
@@ -182,9 +277,9 @@ void calculate_IMU_error() {
     c++;
   }
   //Divide the sum by 200 to get the error value
-  GyroErrorX = GyroErrorX / 200;
-  GyroErrorY = GyroErrorY / 200;
-  GyroErrorZ = GyroErrorZ / 200;
+  GyroErrorX = GyroErrorX / 2000;
+  GyroErrorY = GyroErrorY / 2000;
+  GyroErrorZ = GyroErrorZ / 2000;
   // Print the error values on the Serial Monitor
   Serial.print("AccErrorX: ");
   Serial.println(AccErrorX);
